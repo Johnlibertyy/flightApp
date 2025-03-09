@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">flightApp</string>
+    <string name="flight_number_hint">ex: A664</string>
+    <string name="what_is_your_flight_number">What is your Flight Number?</string>
+    <string name="let_s_find_out_how_to_get">Let’s find out how to get</string>
+    <string name="to_the_plane">To The Plane!</string>
+    <string name="find_the_way">Find the way</string>
+</resources>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".SecondActivity">
+
+    <!-- Centered Toolbar with off-white design -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="82dp"
+        android:background="@drawable/toolbar_design"
+        android:preferKeepClear="false"
+        app:buttonGravity="center_vertical"
+        app:titleTextColor="#FBFBFB">
+
+        <!-- Container for the 2 buttons (Itinerary, Map) -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:backgroundTint="#D3D3D3"
+            android:gravity="center_vertical"
+            android:layoutMode="clipBounds"
+            android:orientation="horizontal">
+
+            <!-- Button 1: Itinerary -->
+            <Button
+                android:id="@+id/btnItinerary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="14dp"
+                android:backgroundTint="#F8F8F8"
+                android:text="Itinerary"
+                android:textColor="@android:color/black"
+                android:textSize="14sp"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp" />
+
+            <!-- Button 2: Map -->
+            <Button
+                android:id="@+id/btnMap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#D3D3D3"
+                android:text="Map"
+                android:textColor="@android:color/black"
+                android:textSize="14sp"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp" />
+        </LinearLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+    <TextView
+        android:id="@+id/gateCloseText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="124dp"
+        android:text="Gate close in 1h 4m"
+        android:textColor="@android:color/black"
+        android:textSize="34sp"
+        android:textStyle="bold" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/timelineRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="180dp"
+        android:clipToPadding="false"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="16dp" />
+
+</FrameLayout>
