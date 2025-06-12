@@ -9,6 +9,7 @@ import android.widget.EditText; // Important: Import EditText
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.crashlytics.FirebaseCrashlytics; // Import FirebaseCrashlytics
 
 public class MainActivity extends AppCompatActivity {
     // 1. Declare the FirebaseAnalytics instance here
@@ -34,7 +35,15 @@ public class MainActivity extends AppCompatActivity {
             // It's good practice to ensure the input isn't empty before proceeding
             if (flightNumber.isEmpty()) {
                 flightNumberInput.setError("Flight number cannot be empty");
-                return;
+
+                // Log to Crashlytics and then crash
+                FirebaseCrashlytics.getInstance().log("Attempted to search with empty flight number.");
+                FirebaseCrashlytics.getInstance().setCustomKey("empty_input_field", "flightNumberInput");
+                // You can add more custom keys if needed
+                // FirebaseCrashlytics.getInstance().setUserId("some_user_identifier_if_available");
+
+                throw new RuntimeException("Crash: Flight number was empty on search attempt."); // Force a crash
+                // return; // This line is no longer reachable due to the exception
             }
 
             // 4. Log the custom event to Firebase Analytics
@@ -45,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("FLIGHT_NUMBER", flightNumber);
             startActivity(intent);
         });
+
     }
 
     /**
