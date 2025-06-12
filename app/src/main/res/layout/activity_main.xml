@@ -15,50 +15,63 @@
         android:padding="0dp"
         android:src="@drawable/plane" />
 
-
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="left|center"
-        android:textStyle="bold"
-        android:layout_marginBottom="100dp"
-        android:padding="15dp"
-        android:text="@string/let_s_find_out_how_to_get"
-        android:textSize="24sp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="left|center"
-        android:textStyle="bold"
-        android:layout_marginBottom="65dp"
-        android:padding="15dp"
-        android:text="@string/to_the_plane"
-        android:textSize="34sp"
-        tools:ignore="RtlHardcoded" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:text="@string/what_is_your_flight_number"
-        android:layout_gravity="center" />
-
-    <EditText
-        android:id="@+id/textInput"
-        android:layout_width="300sp"
-        android:layout_marginBottom="0dp"
-        android:layout_height="wrap_content"
-        android:background="#d7d7d7"
+        android:orientation="vertical"
         android:layout_gravity="center"
-        android:hint="@string/flight_number_hint" />
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp">
 
-    <Button
-        android:id="@+id/findWayButton"
-        android:layout_width="300dp"
-        android:layout_height="50dp"
-        android:layout_gravity="center"
-        android:layout_marginTop="50dp"
-        android:backgroundTint="#007AFF"
-        android:text="@string/find_the_way" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:textStyle="bold"
+            android:text="@string/let_s_find_out_how_to_get"
+            android:textSize="24sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp"
+            android:text="@string/to_the_plane"
+            android:textSize="34sp"
+            tools:ignore="RtlHardcoded" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="4dp"
+            android:text="@string/what_is_your_flight_number" />
+
+        <Spinner
+            android:id="@+id/airlineSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp"
+            android:background="#d7d7d7"
+            android:contentDescription="@string/select_airline_hint" />
+
+        <EditText
+            android:id="@+id/textInput"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="#d7d7d7"
+            android:hint="@string/flight_number_hint"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:inputType="textCapCharacters" />
+
+        <Button
+            android:id="@+id/findWayButton"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#007AFF"
+            android:text="@string/find_the_way" />
+    </LinearLayout>
 </FrameLayout>
