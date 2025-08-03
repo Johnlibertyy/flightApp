@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Vertical line (black), 2dp wide, fills the container vertically -->
+    <item
+        android:left="8dp"
+        android:gravity="fill_vertical">
+        <shape android:shape="rectangle">
+            <size android:width="2dp" />
+            <solid android:color="@android:color/black" />
+        </shape>
+    </item>
+
+    <!-- Blue circle, positioned 50dp from the top -->
+    <item
+        android:left="0dp"
+        android:top="50dp">
+        <shape android:shape="oval">
+            <size android:width="16dp" android:height="16dp" />
+            <solid android:color="#2196F3" />
+        </shape>
+    </item>
+</layer-list>

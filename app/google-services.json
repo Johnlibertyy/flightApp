@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "549205410298",
+    "project_id": "flightapp-runi",
+    "storage_bucket": "flightapp-runi.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:549205410298:android:1174c028e90c6d087e2443",
+        "android_client_info": {
+          "package_name": "com.example.flightapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYpvu4oiDNEuywSx7xaZKcG_-GGJsS2BM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
