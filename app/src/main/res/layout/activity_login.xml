@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/gradient_background"
@@ -28,22 +29,12 @@
             android:gravity="center">
 
             <!-- App Logo -->
-            <RelativeLayout
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:background="@drawable/app_logo_complete"
-                android:layout_marginBottom="16dp">
-                
-                <!-- Airplane icon overlay -->
-                <ImageView
-                    android:layout_width="35dp"
-                    android:layout_height="35dp"
-                    android:layout_centerInParent="true"
-                    android:src="@drawable/plane"
-                    android:scaleType="centerInside"
-                    android:tint="@color/white" />
-                    
-            </RelativeLayout>
+
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="75dp"
+                android:layout_height="76dp"
+                app:srcCompat="@drawable/logo" />
 
             <TextView
                 android:layout_width="wrap_content"
