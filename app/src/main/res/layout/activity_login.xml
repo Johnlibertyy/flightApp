@@ -27,12 +27,23 @@
             android:orientation="vertical"
             android:gravity="center">
 
-            <!-- You can add an app icon here -->
-            <View
+            <!-- App Logo -->
+            <RelativeLayout
                 android:layout_width="80dp"
                 android:layout_height="80dp"
-                android:background="@drawable/circle_completed"
-                android:layout_marginBottom="16dp" />
+                android:background="@drawable/app_logo_complete"
+                android:layout_marginBottom="16dp">
+                
+                <!-- Airplane icon overlay -->
+                <ImageView
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+                    android:layout_centerInParent="true"
+                    android:src="@drawable/plane"
+                    android:scaleType="centerInside"
+                    android:tint="@color/white" />
+                    
+            </RelativeLayout>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -161,8 +172,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:text="Create New Account"
-                android:background="@drawable/button_secondary"
-                android:textColor="@color/primary_blue"
+                android:background="@drawable/button_signup"
+                android:textColor="@color/white"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 

@@ -57,8 +57,9 @@ public class MainActivity extends AppCompatActivity {
         Button findFlightButton = findViewById(R.id.findWayButton);
 
         // Spinner setup
-        airlineAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, airlineList);
-        airlineAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        airlineList.add("Select Airline"); // Add default hint
+        airlineAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, airlineList);
+        airlineAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         airlineSpinner.setAdapter(airlineAdapter);
         fetchAirlines();
 
@@ -73,8 +74,10 @@ public class MainActivity extends AppCompatActivity {
                     ? airlineSpinner.getSelectedItem().toString()
                     : "";
 
-            if (selectedAirline.isEmpty()) {
-                FirebaseCrashlytics.getInstance().log("Airline not selected.");
+            if (selectedAirline.isEmpty() || selectedAirline.equals("Select Airline")) {
+                // Show error message for airline selection
+                Toast.makeText(MainActivity.this, "Please select an airline", Toast.LENGTH_SHORT).show();
+                return;
             }
 
             if (flightNumber.isEmpty()) {
@@ -146,7 +149,11 @@ public class MainActivity extends AppCompatActivity {
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        airlineList.clear();
+                        // Clear all except the first item (hint)
+                        while (airlineList.size() > 1) {
+                            airlineList.remove(1);
+                        }
+                        
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             String airlineName = document.getString("name");
                             if (airlineName != null) {
