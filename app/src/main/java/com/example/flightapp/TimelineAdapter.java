@@ -36,9 +36,9 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
         // Set the circle drawable based on the isCompleted flag
         if (item.isCompleted()) {
-            holder.circleView.setImageResource(R.drawable.circle_filled_blue);
+            holder.circleView.setImageResource(R.drawable.circle_completed);
         } else {
-            holder.circleView.setImageResource(R.drawable.circle_empty);
+            holder.circleView.setImageResource(R.drawable.circle_pending);
         }
 
         // On click: mark all items with index <= clicked index as completed.

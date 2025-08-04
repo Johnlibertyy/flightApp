@@ -1,83 +1,185 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_white_rounded"
-    android:padding="32dp">
+    android:background="@drawable/gradient_background"
+    android:fillViewport="true">
 
-    <ImageView
-        android:id="@+id/planeImage"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:src="@drawable/plane"
-        android:alpha="0.15" />
-
-    <TextView
-        android:id="@+id/headerText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="FlightApp"
-        android:textSize="45sp"
-        android:textStyle="bold"
-        android:textColor="#000"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="70dp" />
-
-    <LinearLayout
-        android:id="@+id/loginForm"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:orientation="vertical"
-        android:gravity="center"
         android:padding="24dp">
 
-        <EditText
-            android:id="@+id/emailEditText"
+        <!-- Background overlay for better text readability -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/white"
+            android:alpha="0.95" />
+
+        <!-- App Logo/Icon Area -->
+        <LinearLayout
+            android:id="@+id/logoSection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Email"
-            android:inputType="textEmailAddress"
-            android:background="@drawable/bg_white_rounded"
-            android:padding="14dp"
-            android:textColor="#000"
-            android:layout_marginBottom="16dp" />
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="60dp"
+            android:orientation="vertical"
+            android:gravity="center">
 
-        <EditText
-            android:id="@+id/passwordEditText"
+            <!-- You can add an app icon here -->
+            <View
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:background="@drawable/circle_completed"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="FlightApp"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary_blue"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Welcome back! Please sign in to continue"
+                android:textSize="16sp"
+                android:textColor="@color/neutral_600"
+                android:textAlignment="center" />
+
+        </LinearLayout>
+
+        <!-- Login Form -->
+        <LinearLayout
+            android:id="@+id/loginForm"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Password"
-            android:inputType="textPassword"
-            android:background="@drawable/bg_white_rounded"
-            android:padding="14dp"
-            android:textColor="#000"
-            android:layout_marginBottom="24dp" />
+            android:layout_below="@id/logoSection"
+            android:layout_marginTop="48dp"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:background="@drawable/card_background"
+            android:elevation="8dp">
 
-        <Button
-            android:id="@+id/emailLoginButton"
-            android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Email Address"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/neutral_700"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/emailEditText"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:hint="Enter your email"
+                android:inputType="textEmailAddress"
+                android:background="@drawable/input_field_background"
+                android:padding="16dp"
+                android:textColor="@color/neutral_800"
+                android:textColorHint="@color/neutral_400"
+                android:layout_marginBottom="20dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Password"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/neutral_700"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/passwordEditText"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:hint="Enter your password"
+                android:inputType="textPassword"
+                android:background="@drawable/input_field_background"
+                android:padding="16dp"
+                android:textColor="@color/neutral_800"
+                android:textColorHint="@color/neutral_400"
+                android:layout_marginBottom="24dp" />
+
+            <Button
+                android:id="@+id/emailLoginButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Sign In"
+                android:background="@drawable/button_primary"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:elevation="4dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Divider -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp">
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/neutral_300" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="  OR  "
+                    android:textColor="@color/neutral_500"
+                    android:textSize="12sp" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/neutral_300" />
+
+            </LinearLayout>
+
+            <!-- Google Sign-In Button -->
+            <com.google.android.gms.common.SignInButton
+                android:id="@+id/googleSignInButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="20dp" />
+
+            <Button
+                android:id="@+id/SignUpButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Create New Account"
+                android:background="@drawable/button_secondary"
+                android:textColor="@color/primary_blue"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <!-- Footer Text -->
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Log In"
-            android:backgroundTint="#3F51B5"
-            android:textColor="#fff"
-            android:layout_marginBottom="16dp" />
+            android:layout_below="@id/loginForm"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="24dp"
+            android:text="By signing in, you agree to our Terms of Service"
+            android:textSize="12sp"
+            android:textColor="@color/neutral_500"
+            android:textAlignment="center" />
 
-        <!-- ✅ Google Sign-In Button -->
-        <com.google.android.gms.common.SignInButton
-            android:id="@+id/googleSignInButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp" />
+    </RelativeLayout>
 
-        <Button
-            android:id="@+id/SignUpButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Sign Up"
-            android:backgroundTint="#4CAF50"
-            android:textColor="#fff" />
-    </LinearLayout>
-
-</RelativeLayout>
+</ScrollView>

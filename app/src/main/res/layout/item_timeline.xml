@@ -1,53 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
-    android:paddingStart="40dp"
-    android:paddingEnd="16dp">
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:background="@drawable/card_background"
+    android:layout_marginBottom="12dp"
+    android:elevation="2dp">
 
-    <!-- The circle that represents the step -->
-    <ImageView
-        android:id="@+id/circleView"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_alignParentStart="true"
-        android:layout_centerVertical="true"
-        android:src="@drawable/circle_empty" />
+    <!-- Timeline indicator -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="top"
+        android:layout_marginEnd="16dp">
 
-    <!-- Text container, to the right of the circle -->
+        <!-- Circle indicator -->
+        <ImageView
+            android:id="@+id/circleView"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/circle_pending"
+            android:layout_marginTop="8dp" />
+
+        <!-- Vertical line (for connecting to next item) -->
+        <View
+            android:layout_width="2dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/neutral_300"
+            android:layout_marginTop="8dp" />
+
+    </LinearLayout>
+
+    <!-- Content section -->
     <LinearLayout
         android:id="@+id/textContainer"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/circleView"
-        android:layout_marginStart="16dp"
+        android:layout_weight="1"
         android:orientation="vertical"
-        android:layout_centerVertical="true">
+        android:paddingTop="4dp">
 
-        <TextView
-            android:id="@+id/titleText"
-            android:layout_width="wrap_content"
+        <!-- Title and status row -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Step Title"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:textColor="@android:color/black" />
+            android:orientation="horizontal"
+            android:layout_marginBottom="4dp">
+
+            <TextView
+                android:id="@+id/titleText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Step Title"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/neutral_800" />
+
+            <!-- Status indicator -->
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="COMPLETED"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="@color/accent_green"
+                android:background="@color/neutral_100"
+                android:padding="4dp"
+                android:visibility="gone" />
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/subTitleText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Subtitle or location"
-            android:textColor="@android:color/black" />
+            android:textColor="@color/neutral_600"
+            android:textSize="14sp"
+            android:layout_marginBottom="4dp" />
 
-        <TextView
-            android:id="@+id/timeText"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Time"
-            android:textColor="@android:color/black" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🕐"
+                android:textSize="14sp"
+                android:layout_marginEnd="6dp" />
+
+            <TextView
+                android:id="@+id/timeText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Time information"
+                android:textColor="@color/neutral_500"
+                android:textSize="12sp"
+                android:textStyle="italic" />
+
+        </LinearLayout>
+
     </LinearLayout>
-</RelativeLayout>
+
+</LinearLayout>
