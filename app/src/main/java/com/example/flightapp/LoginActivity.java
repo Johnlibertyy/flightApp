@@ -5,9 +5,11 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.common.SignInButton;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -22,8 +24,10 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText emailEditText, passwordEditText;
     private Button loginButton, signUpButton;
+    private SignInButton googleSignInButton;
     private GoogleSignInClient mGoogleSignInClient;
     private static final int RC_SIGN_IN = 9001;
+    private static final String TAG = "LoginActivity";
 
     private FirebaseAuth mAuth;
 
@@ -35,11 +39,19 @@ public class LoginActivity extends AppCompatActivity {
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 
+        // Configure Google Sign-In
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+        
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+
         // UI References
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         loginButton = findViewById(R.id.emailLoginButton);
         signUpButton = findViewById(R.id.SignUpButton);
+        googleSignInButton = findViewById(R.id.googleSignInButton);
 
         // Login button logic
         loginButton.setOnClickListener(v -> loginWithEmail());
@@ -49,6 +61,9 @@ public class LoginActivity extends AppCompatActivity {
             Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
             startActivity(intent);
         });
+
+        // Google Sign-In button logic
+        googleSignInButton.setOnClickListener(v -> signInWithGoogle());
     }
 
     private void loginWithEmail() {
@@ -92,5 +107,41 @@ public class LoginActivity extends AppCompatActivity {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         finish();
+    }
+
+    private void signInWithGoogle() {
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Result returned from launching the Intent from GoogleSignInClient.getSignInIntent(...);
+        if (requestCode == RC_SIGN_IN) {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            try {
+                // Google Sign In was successful, authenticate with Firebase
+                GoogleSignInAccount account = task.getResult(ApiException.class);
+                Log.d(TAG, "Google sign in successful: " + account.getEmail());
+                
+                // For now, just go to main activity directly
+                // In a production app, you'd want to create a Firebase user or authenticate
+                Toast.makeText(this, "Google Sign-In successful! Welcome " + account.getDisplayName(), Toast.LENGTH_SHORT).show();
+                goToMain();
+                
+            } catch (ApiException e) {
+                // Google Sign In failed, update UI appropriately
+                Log.w(TAG, "Google sign in failed", e);
+                String errorMessage = "Google sign in failed";
+                if (e.getStatusCode() == 12501) {
+                    errorMessage = "Google sign in was cancelled";
+                } else if (e.getStatusCode() == 7) {
+                    errorMessage = "Network error. Please check your internet connection";
+                }
+                Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
+            }
+        }
     }
 }
