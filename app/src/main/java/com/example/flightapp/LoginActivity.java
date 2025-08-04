@@ -16,6 +16,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -26,8 +28,8 @@ public class LoginActivity extends AppCompatActivity {
     private Button loginButton, signUpButton;
     private SignInButton googleSignInButton;
     private GoogleSignInClient mGoogleSignInClient;
-    private static final int RC_SIGN_IN = 9001;
     private static final String TAG = "LoginActivity";
+    private ActivityResultLauncher<Intent> googleSignInLauncher;
 
     private FirebaseAuth mAuth;
 
@@ -38,6 +40,21 @@ public class LoginActivity extends AppCompatActivity {
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
+
+        // Initialize Google Sign-In result launcher
+        googleSignInLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        Intent data = result.getData();
+                        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+                        handleGoogleSignInResult(task);
+                    } else {
+                        Log.d(TAG, "Google Sign-In was cancelled or failed");
+                        Toast.makeText(this, "Google Sign-In was cancelled", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
 
         // Configure Google Sign-In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -111,37 +128,34 @@ public class LoginActivity extends AppCompatActivity {
 
     private void signInWithGoogle() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
+        googleSignInLauncher.launch(signInIntent);
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        // Result returned from launching the Intent from GoogleSignInClient.getSignInIntent(...);
-        if (requestCode == RC_SIGN_IN) {
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            try {
-                // Google Sign In was successful, authenticate with Firebase
-                GoogleSignInAccount account = task.getResult(ApiException.class);
-                Log.d(TAG, "Google sign in successful: " + account.getEmail());
-                
-                // For now, just go to main activity directly
-                // In a production app, you'd want to create a Firebase user or authenticate
-                Toast.makeText(this, "Google Sign-In successful! Welcome " + account.getDisplayName(), Toast.LENGTH_SHORT).show();
+    private void handleGoogleSignInResult(Task<GoogleSignInAccount> task) {
+        try {
+            // Google Sign In was successful
+            GoogleSignInAccount account = task.getResult(ApiException.class);
+            Log.d(TAG, "Google sign in successful: " + account.getEmail());
+            
+            // Show welcome message
+            String welcomeMessage = "Welcome " + (account.getDisplayName() != null ? account.getDisplayName() : "User") + "!";
+            Toast.makeText(this, welcomeMessage, Toast.LENGTH_SHORT).show();
+            
+            // Add a small delay before navigating to prevent crash
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
                 goToMain();
-                
-            } catch (ApiException e) {
-                // Google Sign In failed, update UI appropriately
-                Log.w(TAG, "Google sign in failed", e);
-                String errorMessage = "Google sign in failed";
-                if (e.getStatusCode() == 12501) {
-                    errorMessage = "Google sign in was cancelled";
-                } else if (e.getStatusCode() == 7) {
-                    errorMessage = "Network error. Please check your internet connection";
-                }
-                Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
+            }, 1000); // 1 second delay
+            
+        } catch (ApiException e) {
+            // Google Sign In failed
+            Log.w(TAG, "Google sign in failed", e);
+            String errorMessage = "Google sign in failed";
+            if (e.getStatusCode() == 12501) {
+                errorMessage = "Google sign in was cancelled";
+            } else if (e.getStatusCode() == 7) {
+                errorMessage = "Network error. Please check your internet connection";
             }
+            Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
         }
     }
 }
