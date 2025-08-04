@@ -44,12 +44,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Initialize Firebase App first
         FirebaseApp.initializeApp(this);
+        Log.d("MainActivity", "Firebase initialized");
+        
         setContentView(R.layout.activity_main);
 
         // Firebase and Firestore setup
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
         db = FirebaseFirestore.getInstance();
+        Log.d("MainActivity", "Firestore instance created");
 
         // UI elements
         flightNumberInput = findViewById(R.id.textInput);
@@ -61,6 +66,17 @@ public class MainActivity extends AppCompatActivity {
         airlineAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, airlineList);
         airlineAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         airlineSpinner.setAdapter(airlineAdapter);
+        Log.d("MainActivity", "Spinner setup complete, about to fetch airlines");
+        
+        // Add a click listener to retry loading airlines if needed
+        airlineSpinner.setOnClickListener(v -> {
+            if (airlineList.size() <= 1) {
+                Log.d("MainActivity", "Retrying to fetch airlines due to spinner click");
+                Toast.makeText(this, "Refreshing airlines from database...", Toast.LENGTH_SHORT).show();
+                fetchAirlines();
+            }
+        });
+        
         fetchAirlines();
 
         // 🔽 Location setup
@@ -76,7 +92,12 @@ public class MainActivity extends AppCompatActivity {
 
             if (selectedAirline.isEmpty() || selectedAirline.equals("Select Airline")) {
                 // Show error message for airline selection
-                Toast.makeText(MainActivity.this, "Please select an airline", Toast.LENGTH_SHORT).show();
+                if (airlineList.size() <= 1) {
+                    Toast.makeText(MainActivity.this, "No airlines available. Please check your internet connection and try again.", Toast.LENGTH_LONG).show();
+                    fetchAirlines(); // Retry fetching
+                } else {
+                    Toast.makeText(MainActivity.this, "Please select an airline from the list", Toast.LENGTH_SHORT).show();
+                }
                 return;
             }
 
@@ -144,25 +165,42 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fetchAirlines() {
+        Log.d("MainActivity", "Starting to fetch airlines from Firestore...");
+        
         db.collection("airlines")
                 .orderBy("name")
                 .get()
                 .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        Log.d("MainActivity", "Successfully fetched airlines. Count: " + task.getResult().size());
+                        
                         // Clear all except the first item (hint)
                         while (airlineList.size() > 1) {
                             airlineList.remove(1);
                         }
                         
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            String airlineName = document.getString("name");
-                            if (airlineName != null) {
-                                airlineList.add(airlineName);
+                        if (task.getResult().isEmpty()) {
+                            Log.d("MainActivity", "No airlines found in Firestore database");
+                            Toast.makeText(MainActivity.this, "No airlines found in database. Please add airlines to Firestore.", Toast.LENGTH_LONG).show();
+                        } else {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                String airlineName = document.getString("name");
+                                Log.d("MainActivity", "Found airline: " + airlineName);
+                                if (airlineName != null && !airlineName.trim().isEmpty()) {
+                                    airlineList.add(airlineName);
+                                }
                             }
+                            
+                            Log.d("MainActivity", "Total airlines in list: " + airlineList.size());
+                            airlineAdapter.notifyDataSetChanged();
+                            
+                            // Show a toast to confirm data loading
+                            Toast.makeText(MainActivity.this, "Loaded " + (airlineList.size() - 1) + " airlines from database", Toast.LENGTH_SHORT).show();
                         }
-                        airlineAdapter.notifyDataSetChanged();
+                        
                     } else {
                         Log.e("Firestore", "Error getting airlines: ", task.getException());
+                        Toast.makeText(MainActivity.this, "Failed to load airlines from database. Check your internet connection.", Toast.LENGTH_LONG).show();
                     }
                 });
     }
