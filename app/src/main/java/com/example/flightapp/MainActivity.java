@@ -21,16 +21,21 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
     private FirebaseAnalytics mFirebaseAnalytics;
+    private FirebaseAuth mAuth;
     private EditText flightNumberInput;
     private Spinner airlineSpinner;
     private FirebaseFirestore db;
@@ -45,76 +50,100 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Initialize Firebase App first
-        FirebaseApp.initializeApp(this);
-        Log.d("MainActivity", "Firebase initialized");
-        
-        setContentView(R.layout.activity_main);
+        try {
+            // Initialize Firebase App first
+            FirebaseApp.initializeApp(this);
+            Log.d("MainActivity", "Firebase initialized");
+            
+            setContentView(R.layout.activity_main);
 
-        // Firebase and Firestore setup
-        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
-        db = FirebaseFirestore.getInstance();
-        Log.d("MainActivity", "Firestore instance created");
+            // Firebase and Firestore setup
+            mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+            mAuth = FirebaseAuth.getInstance();
+            db = FirebaseFirestore.getInstance();
+            Log.d("MainActivity", "Firestore instance created");
 
-        // UI elements
-        flightNumberInput = findViewById(R.id.textInput);
-        airlineSpinner = findViewById(R.id.airlineSpinner);
-        Button findFlightButton = findViewById(R.id.findWayButton);
+            // UI elements
+            flightNumberInput = findViewById(R.id.textInput);
+            airlineSpinner = findViewById(R.id.airlineSpinner);
+            Button findFlightButton = findViewById(R.id.findWayButton);
 
-        // Spinner setup
-        airlineList.add("Select Airline"); // Add default hint
-        airlineAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, airlineList);
-        airlineAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
-        airlineSpinner.setAdapter(airlineAdapter);
-        Log.d("MainActivity", "Spinner setup complete, about to fetch airlines");
-        
-        // Add a click listener to retry loading airlines if needed
-        airlineSpinner.setOnClickListener(v -> {
-            if (airlineList.size() <= 1) {
-                Log.d("MainActivity", "Retrying to fetch airlines due to spinner click");
-                Toast.makeText(this, "Refreshing airlines from database...", Toast.LENGTH_SHORT).show();
-                fetchAirlines();
-            }
-        });
-        
-        fetchAirlines();
-
-        // 🔽 Location setup
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        requestLocationPermission(); // request or get location on app start
-
-        // 🔽 On button click, get location and proceed
-        findFlightButton.setOnClickListener(v -> {
-            String flightNumber = flightNumberInput.getText().toString().trim();
-            String selectedAirline = airlineSpinner.getSelectedItem() != null
-                    ? airlineSpinner.getSelectedItem().toString()
-                    : "";
-
-            if (selectedAirline.isEmpty() || selectedAirline.equals("Select Airline")) {
-                // Show error message for airline selection
-                if (airlineList.size() <= 1) {
-                    Toast.makeText(MainActivity.this, "No airlines available. Please check your internet connection and try again.", Toast.LENGTH_LONG).show();
-                    fetchAirlines(); // Retry fetching
-                } else {
-                    Toast.makeText(MainActivity.this, "Please select an airline from the list", Toast.LENGTH_SHORT).show();
-                }
+            // Null check for UI elements with specific error messages
+            if (flightNumberInput == null) {
+                Log.e("MainActivity", "flightNumberInput (textInput) is null");
+                Toast.makeText(this, "Error: Flight number input not found", Toast.LENGTH_LONG).show();
                 return;
             }
-
-            if (flightNumber.isEmpty()) {
-                flightNumberInput.setError("Flight number cannot be empty");
-                FirebaseCrashlytics.getInstance().log("Attempted to search with empty flight number.");
-                FirebaseCrashlytics.getInstance().setCustomKey("empty_input_field", "flightNumberInput");
-                throw new RuntimeException("Crash: Flight number was empty on search attempt.");
+            if (airlineSpinner == null) {
+                Log.e("MainActivity", "airlineSpinner is null");
+                Toast.makeText(this, "Error: Airline spinner not found", Toast.LENGTH_LONG).show();
+                return;
             }
+            if (findFlightButton == null) {
+                Log.e("MainActivity", "findFlightButton (findWayButton) is null");
+                Toast.makeText(this, "Error: Find flight button not found", Toast.LENGTH_LONG).show();
+                return;
+            }            // Spinner setup
+            airlineList.add("Select Airline"); // Add default hint
+            airlineAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, airlineList);
+            airlineAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
+            airlineSpinner.setAdapter(airlineAdapter);
+            Log.d("MainActivity", "Spinner setup complete, about to fetch airlines");
+            
+            fetchAirlines();
 
-            logFlightSearchEvent(flightNumber, selectedAirline);
-            getUserLocation(); // Refresh location on button press
-            Intent intent = new Intent(MainActivity.this, SecondActivity.class);
-            intent.putExtra("FLIGHT_NUMBER", flightNumber);
-            intent.putExtra("AIRLINE_NAME", selectedAirline);
-            startActivity(intent);
-        });
+            // 🔽 Location setup (will request permission when user logs in)
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+            
+            // Request location permission after login
+            requestLocationPermission();
+
+            // 🔽 On button click, get location and proceed
+            findFlightButton.setOnClickListener(v -> {
+                String flightNumber = flightNumberInput.getText().toString().trim();
+                String selectedAirline = airlineSpinner.getSelectedItem() != null
+                        ? airlineSpinner.getSelectedItem().toString()
+                        : "";
+
+                if (selectedAirline.isEmpty() || selectedAirline.equals("Select Airline")) {
+                    Toast.makeText(MainActivity.this, "Please select an airline", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (flightNumber.isEmpty()) {
+                    // Crash the app and report to Crashlytics
+                    Log.e("MainActivity", "User clicked Find Way without flight number - crashing app");
+                    
+                    // Record the exception to Crashlytics first
+                    RuntimeException crashException = new RuntimeException("User clicked Find Way button without entering flight number");
+                    FirebaseCrashlytics.getInstance().recordException(crashException);
+                    
+                    // Force send the crash report immediately
+                    FirebaseCrashlytics.getInstance().sendUnsentReports();
+                    
+                    // Add a small delay to ensure the report is sent before crashing
+                    try {
+                        Thread.sleep(1000); // 1 second delay
+                    } catch (InterruptedException e) {
+                        // Ignore interrupt
+                    }
+                    
+                    // Now throw the exception to crash the app
+                    throw crashException;
+                }
+
+                logFlightSearchEvent(flightNumber, selectedAirline);
+                getUserLocation(); // Refresh location on button press
+                Intent intent = new Intent(MainActivity.this, SecondActivity.class);
+                intent.putExtra("FLIGHT_NUMBER", flightNumber);
+                intent.putExtra("AIRLINE_NAME", selectedAirline);
+                startActivity(intent);
+            });
+            
+        } catch (Exception e) {
+            Log.e("MainActivity", "Error in onCreate", e);
+            Toast.makeText(this, "Error initializing app. Please restart.", Toast.LENGTH_LONG).show();
+        }
     }
 
     // 🔽 Get permission or fetch location
@@ -167,44 +196,31 @@ public class MainActivity extends AppCompatActivity {
     private void fetchAirlines() {
         Log.d("MainActivity", "Starting to fetch airlines from Firestore...");
         
+        airlineList.add("Loading airlines...");
+        airlineAdapter.notifyDataSetChanged();
+        
         db.collection("airlines")
-                .orderBy("name")
                 .get()
                 .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null) {
-                        Log.d("MainActivity", "Successfully fetched airlines. Count: " + task.getResult().size());
-                        
-                        // Clear all except the first item (hint)
-                        while (airlineList.size() > 1) {
-                            airlineList.remove(1);
-                        }
-                        
-                        if (task.getResult().isEmpty()) {
-                            Log.d("MainActivity", "No airlines found in Firestore database");
-                            Toast.makeText(MainActivity.this, "No airlines found in database. Please add airlines to Firestore.", Toast.LENGTH_LONG).show();
-                        } else {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                String airlineName = document.getString("name");
-                                Log.d("MainActivity", "Found airline: " + airlineName);
-                                if (airlineName != null && !airlineName.trim().isEmpty()) {
-                                    airlineList.add(airlineName);
-                                }
+                    // Remove loading message
+                    airlineList.remove("Loading airlines...");
+                    
+                    if (task.isSuccessful()) {
+                        Log.d("MainActivity", "Successfully fetched airlines");
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            String airlineName = document.getString("name");
+                            if (airlineName != null && !airlineName.trim().isEmpty()) {
+                                airlineList.add(airlineName);
                             }
-                            
-                            Log.d("MainActivity", "Total airlines in list: " + airlineList.size());
-                            airlineAdapter.notifyDataSetChanged();
-                            
-                            // Show a toast to confirm data loading
-                            Toast.makeText(MainActivity.this, "Loaded " + (airlineList.size() - 1) + " airlines from database", Toast.LENGTH_SHORT).show();
                         }
-                        
+                        airlineAdapter.notifyDataSetChanged();
+                        Log.d("MainActivity", "Added " + (airlineList.size() - 1) + " airlines to spinner");
                     } else {
-                        Log.e("Firestore", "Error getting airlines: ", task.getException());
-                        Toast.makeText(MainActivity.this, "Failed to load airlines from database. Check your internet connection.", Toast.LENGTH_LONG).show();
+                        Log.e("MainActivity", "Failed to fetch airlines", task.getException());
                     }
                 });
     }
-
+    
     private void logFlightSearchEvent(String flightNumber, String airlineName) {
         Bundle bundle = new Bundle();
         bundle.putString("flight_number_searched", flightNumber);

@@ -45,45 +45,38 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/let_s_find_out_how_to_get"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@color/primary_blue"
-            android:lineSpacingMultiplier="1.2" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/to_the_plane"
+            android:text="Let's find your way to the plane!"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:textColor="@color/primary_light_blue"
-            android:layout_marginBottom="32dp" />
+            android:textColor="@color/primary_blue"
+            android:layout_marginBottom="24dp" />
 
     </LinearLayout>
 
     <!-- Main content card -->
     <LinearLayout
+        android:id="@+id/contentCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/headerSection"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginTop="16dp"
         android:orientation="vertical"
-        android:background="@drawable/card_background"
         android:padding="24dp"
+        android:background="@drawable/card_background"
         android:elevation="8dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Flight Information"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="@color/neutral_800"
             android:layout_marginBottom="20dp" />
 
+        <!-- Airline Selection -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -102,10 +95,11 @@
             android:padding="16dp"
             android:contentDescription="@string/select_airline_hint" />
 
+        <!-- Flight Number Input -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/what_is_your_flight_number"
+            android:text="Flight Number"
             android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="@color/neutral_700"
@@ -115,14 +109,15 @@
             android:id="@+id/textInput"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:background="@drawable/input_field_background"
             android:hint="@string/flight_number_hint"
+            android:inputType="textCapCharacters"
+            android:background="@drawable/input_field_background"
             android:padding="16dp"
             android:textColor="@color/neutral_800"
             android:textColorHint="@color/neutral_400"
-            android:inputType="textCapCharacters"
             android:layout_marginBottom="24dp" />
 
+        <!-- Search Button -->
         <Button
             android:id="@+id/findWayButton"
             android:layout_width="match_parent"
@@ -134,33 +129,35 @@
             android:textStyle="bold"
             android:elevation="4dp" />
 
-        <!-- Quick tips section -->
-        <LinearLayout
-            android:layout_width="match_parent"
+    </LinearLayout>
+
+    <!-- Quick tips section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/contentCard"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@color/neutral_50"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="20dp"
-            android:padding="16dp"
-            android:background="@color/neutral_50"
-            android:gravity="center_vertical">
+            android:text="💡"
+            android:textSize="16sp"
+            android:layout_marginEnd="8dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="💡"
-                android:textSize="20sp"
-                android:layout_marginEnd="12dp" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Enter your flight number to get real-time navigation to your gate"
-                android:textSize="12sp"
-                android:textColor="@color/neutral_600"
-                android:lineSpacingMultiplier="1.3" />
-
-        </LinearLayout>
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Tip: Flight numbers are usually a combination of letters and numbers (e.g., AA123, DL456)"
+            android:textSize="12sp"
+            android:textColor="@color/neutral_600" />
 
     </LinearLayout>
 

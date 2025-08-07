@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -21,6 +22,15 @@ public class SecondActivity extends AppCompatActivity {
         // Enable edge-to-edge mode (if needed)
         EdgeToEdge.enable(this);
         setContentView(R.layout.second_activity);
+
+        // Setup Back button click
+        TextView backButton = findViewById(R.id.backButton);
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish(); // Go back to MainActivity
+            }
+        });
 
         // Setup Itinerary button click (shows a Toast message)
         Button btnItinerary = findViewById(R.id.btnItinerary);
