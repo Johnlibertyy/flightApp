@@ -34,13 +34,29 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
+    // Simple class to hold airline data
+    private static class Airline {
+        String name;
+        String code;
+        
+        Airline(String name, String code) {
+            this.name = name;
+            this.code = code;
+        }
+        
+        @Override
+        public String toString() {
+            return name; // Display name in spinner
+        }
+    }
+
     private FirebaseAnalytics mFirebaseAnalytics;
     private FirebaseAuth mAuth;
     private EditText flightNumberInput;
     private Spinner airlineSpinner;
     private FirebaseFirestore db;
-    private ArrayAdapter<String> airlineAdapter;
-    private final List<String> airlineList = new ArrayList<>();
+    private ArrayAdapter<Airline> airlineAdapter;
+    private final List<Airline> airlineList = new ArrayList<>();
 
     // 🔽 Location-related
     private FusedLocationProviderClient fusedLocationClient;
@@ -84,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Error: Find flight button not found", Toast.LENGTH_LONG).show();
                 return;
             }            // Spinner setup
-            airlineList.add("Select Airline"); // Add default hint
+            airlineList.add(new Airline("Select Airline", "")); // Add default hint
             airlineAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, airlineList);
             airlineAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
             airlineSpinner.setAdapter(airlineAdapter);
@@ -101,9 +117,9 @@ public class MainActivity extends AppCompatActivity {
             // 🔽 On button click, get location and proceed
             findFlightButton.setOnClickListener(v -> {
                 String flightNumber = flightNumberInput.getText().toString().trim();
-                String selectedAirline = airlineSpinner.getSelectedItem() != null
-                        ? airlineSpinner.getSelectedItem().toString()
-                        : "";
+                Airline selectedAirlineObj = (Airline) airlineSpinner.getSelectedItem();
+                String selectedAirline = selectedAirlineObj != null ? selectedAirlineObj.name : "";
+                String selectedAirlineCode = selectedAirlineObj != null ? selectedAirlineObj.code : "";
 
                 if (selectedAirline.isEmpty() || selectedAirline.equals("Select Airline")) {
                     Toast.makeText(MainActivity.this, "Please select an airline", Toast.LENGTH_SHORT).show();
@@ -137,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, SecondActivity.class);
                 intent.putExtra("FLIGHT_NUMBER", flightNumber);
                 intent.putExtra("AIRLINE_NAME", selectedAirline);
+                intent.putExtra("AIRLINE_CODE", selectedAirlineCode);
                 startActivity(intent);
             });
             
@@ -196,21 +213,28 @@ public class MainActivity extends AppCompatActivity {
     private void fetchAirlines() {
         Log.d("MainActivity", "Starting to fetch airlines from Firestore...");
         
-        airlineList.add("Loading airlines...");
+        airlineList.add(new Airline("Loading airlines...", ""));
         airlineAdapter.notifyDataSetChanged();
         
         db.collection("airlines")
                 .get()
                 .addOnCompleteListener(task -> {
                     // Remove loading message
-                    airlineList.remove("Loading airlines...");
+                    airlineList.remove(airlineList.stream()
+                            .filter(airline -> airline.name.equals("Loading airlines..."))
+                            .findFirst()
+                            .orElse(null));
                     
                     if (task.isSuccessful()) {
                         Log.d("MainActivity", "Successfully fetched airlines");
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             String airlineName = document.getString("name");
+                            String airlineCode = document.getString("code");
+                            
                             if (airlineName != null && !airlineName.trim().isEmpty()) {
-                                airlineList.add(airlineName);
+                                // Use empty string if code is null
+                                String code = airlineCode != null ? airlineCode : "";
+                                airlineList.add(new Airline(airlineName, code));
                             }
                         }
                         airlineAdapter.notifyDataSetChanged();

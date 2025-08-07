@@ -51,22 +51,43 @@ public class SecondActivity extends AppCompatActivity {
             }
         });
 
+        // Get flight data from Intent
+        String flightNumber = getIntent().getStringExtra("FLIGHT_NUMBER");
+        String airlineName = getIntent().getStringExtra("AIRLINE_NAME");
+        String airlineCode = getIntent().getStringExtra("AIRLINE_CODE");
+        
+        // Create flight display string with user's actual data from database
+        String flightInfo = "Flight Not Found";
+        if (flightNumber != null && !flightNumber.isEmpty()) {
+            if (airlineCode != null && !airlineCode.isEmpty()) {
+                // Use airline code from database
+                flightInfo = airlineCode + flightNumber;
+            } else {
+                // Fallback to just flight number if no code available
+                flightInfo = flightNumber;
+            }
+        }
+
         RecyclerView timelineRecycler = findViewById(R.id.timelineRecycler);
         timelineRecycler.setLayoutManager(new LinearLayoutManager(this));
 
         List<TimelineItem> timelineItems = new ArrayList<>();
         timelineItems.add(new TimelineItem("Airport arrival", "Terminal 2", "08:55 am recommended", true));
-        timelineItems.add(new TimelineItem("Check-in & baggage drop", "Lufthansa Desk Level 04", "10:25 am end of baggage drop", true));
+        
+        // Update check-in desk based on selected airline
+        String checkInDesk = (airlineName != null && !airlineName.isEmpty()) 
+            ? airlineName + " Desk Level 04" 
+            : "Check-in Desk Level 04";
+        timelineItems.add(new TimelineItem("Check-in & baggage drop", checkInDesk, "10:25 am end of baggage drop", true));
+        
         timelineItems.add(new TimelineItem("Security check", "No specific time", "", false));
         timelineItems.add(new TimelineItem("Gate K6", "", "10:45 am close", false));
-        timelineItems.add(new TimelineItem("Plane", "BCN LH2656", "10:55 am departure", false));
+        timelineItems.add(new TimelineItem("Plane", flightInfo, "10:55 am departure", false));
 
         TimelineAdapter adapter = new TimelineAdapter(timelineItems);
         timelineRecycler.setAdapter(adapter);
 
 
         timelineRecycler.addItemDecoration(new TimelineItemDecoration(this));
-
-
     }
 }
