@@ -52,9 +52,9 @@ public class SecondActivity extends AppCompatActivity {
         });
 
         // Get flight data from Intent
-        String flightNumber = getIntent().getStringExtra("FLIGHT_NUMBER");
-        String airlineName = getIntent().getStringExtra("AIRLINE_NAME");
-        String airlineCode = getIntent().getStringExtra("AIRLINE_CODE");
+    String flightNumber = getIntent().getStringExtra(Constants.EXTRA_FLIGHT_NUMBER);
+    String airlineName = getIntent().getStringExtra(Constants.EXTRA_AIRLINE_NAME);
+    String airlineCode = getIntent().getStringExtra(Constants.EXTRA_AIRLINE_CODE);
         
         // Create flight display string with user's actual data from database
         String flightInfo = "Flight Not Found";

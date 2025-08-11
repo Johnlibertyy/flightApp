@@ -19,6 +19,10 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.Priority;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
@@ -65,110 +69,102 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
         try {
-            // Initialize Firebase App first
             FirebaseApp.initializeApp(this);
-            Log.d("MainActivity", "Firebase initialized");
-            
             setContentView(R.layout.activity_main);
-
-            // Firebase and Firestore setup
-            mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
-            mAuth = FirebaseAuth.getInstance();
-            db = FirebaseFirestore.getInstance();
-            Log.d("MainActivity", "Firestore instance created");
-
-            // UI elements
-            flightNumberInput = findViewById(R.id.textInput);
-            airlineSpinner = findViewById(R.id.airlineSpinner);
-            Button findFlightButton = findViewById(R.id.findWayButton);
-
-            // Null check for UI elements with specific error messages
-            if (flightNumberInput == null) {
-                Log.e("MainActivity", "flightNumberInput (textInput) is null");
-                Toast.makeText(this, "Error: Flight number input not found", Toast.LENGTH_LONG).show();
-                return;
-            }
-            if (airlineSpinner == null) {
-                Log.e("MainActivity", "airlineSpinner is null");
-                Toast.makeText(this, "Error: Airline spinner not found", Toast.LENGTH_LONG).show();
-                return;
-            }
-            if (findFlightButton == null) {
-                Log.e("MainActivity", "findFlightButton (findWayButton) is null");
-                Toast.makeText(this, "Error: Find flight button not found", Toast.LENGTH_LONG).show();
-                return;
-            }            // Spinner setup
-            airlineList.add(new Airline("Select Airline", "")); // Add default hint
-            airlineAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, airlineList);
-            airlineAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
-            airlineSpinner.setAdapter(airlineAdapter);
-            Log.d("MainActivity", "Spinner setup complete, about to fetch airlines");
-            
+            initFirebase();
+            initUI();
+            setupSpinner();
             fetchAirlines();
-
-            // 🔽 Location setup (will request permission when user logs in)
-            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-            
-            // Request location permission after login
-            requestLocationPermission();
-
-            // 🔽 On button click, get location and proceed
-            findFlightButton.setOnClickListener(v -> {
-                String flightNumber = flightNumberInput.getText().toString().trim();
-                Airline selectedAirlineObj = (Airline) airlineSpinner.getSelectedItem();
-                String selectedAirline = selectedAirlineObj != null ? selectedAirlineObj.name : "";
-                String selectedAirlineCode = selectedAirlineObj != null ? selectedAirlineObj.code : "";
-
-                if (selectedAirline.isEmpty() || selectedAirline.equals("Select Airline")) {
-                    Toast.makeText(MainActivity.this, "Please select an airline", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                if (flightNumber.isEmpty()) {
-                    // Crash the app and report to Crashlytics
-                    Log.e("MainActivity", "User clicked Find Way without flight number - crashing app");
-                    
-                    // Record the exception to Crashlytics first
-                    RuntimeException crashException = new RuntimeException("User clicked Find Way button without entering flight number");
-                    FirebaseCrashlytics.getInstance().recordException(crashException);
-                    
-                    // Force send the crash report immediately
-                    FirebaseCrashlytics.getInstance().sendUnsentReports();
-                    
-                    // Add a small delay to ensure the report is sent before crashing
-                    try {
-                        Thread.sleep(1000); // 1 second delay
-                    } catch (InterruptedException e) {
-                        // Ignore interrupt
-                    }
-                    
-                    // Now throw the exception to crash the app
-                    throw crashException;
-                }
-
-                logFlightSearchEvent(flightNumber, selectedAirline);
-                getUserLocation(); // Refresh location on button press
-                Intent intent = new Intent(MainActivity.this, SecondActivity.class);
-                intent.putExtra("FLIGHT_NUMBER", flightNumber);
-                intent.putExtra("AIRLINE_NAME", selectedAirline);
-                intent.putExtra("AIRLINE_CODE", selectedAirlineCode);
-                startActivity(intent);
-            });
-            
+            initLocation();
+            setupListeners();
         } catch (Exception e) {
             Log.e("MainActivity", "Error in onCreate", e);
-            Toast.makeText(this, "Error initializing app. Please restart.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.error_init_app), Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void initFirebase() {
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+    }
+
+    private void initUI() {
+        flightNumberInput = findViewById(R.id.textInput);
+        airlineSpinner = findViewById(R.id.airlineSpinner);
+        if (flightNumberInput == null) {
+            Toast.makeText(this, getString(R.string.error_flight_input_missing), Toast.LENGTH_LONG).show();
+        }
+        if (airlineSpinner == null) {
+            Toast.makeText(this, getString(R.string.error_airline_spinner_missing), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void setupSpinner() {
+        airlineList.add(new Airline(getString(R.string.select_airline_hint), ""));
+        airlineAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, airlineList);
+        airlineAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
+        airlineSpinner.setAdapter(airlineAdapter);
+    }
+
+    private void initLocation() {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        requestLocationPermission();
+    }
+
+    private void setupListeners() {
+        Button findFlightButton = findViewById(R.id.findWayButton);
+        if (findFlightButton == null) {
+            Toast.makeText(this, getString(R.string.error_find_button_missing), Toast.LENGTH_LONG).show();
+            return;
+        }
+        findFlightButton.setOnClickListener(v -> handleFindFlightClick());
+    }
+
+    private void handleFindFlightClick() {
+        String flightNumber = flightNumberInput != null ? flightNumberInput.getText().toString().trim() : "";
+        Airline selectedAirlineObj = (Airline) airlineSpinner.getSelectedItem();
+        String selectedAirline = selectedAirlineObj != null ? selectedAirlineObj.name : "";
+        String selectedAirlineCode = selectedAirlineObj != null ? selectedAirlineObj.code : "";
+        if (selectedAirline.isEmpty() || selectedAirline.equals(getString(R.string.select_airline_hint))) {
+            Toast.makeText(this, getString(R.string.toast_select_airline), Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (flightNumber.isEmpty()) {
+            triggerCrashForMissingFlight();
+            return;
+        }
+        logFlightSearchEvent(flightNumber, selectedAirline);
+        logFlightSearchAnalytics(selectedAirlineCode, flightNumber, true);
+        getUserLocation();
+        Intent intent = new Intent(this, SecondActivity.class);
+        intent.putExtra(Constants.EXTRA_FLIGHT_NUMBER, flightNumber);
+        intent.putExtra(Constants.EXTRA_AIRLINE_NAME, selectedAirline);
+        intent.putExtra(Constants.EXTRA_AIRLINE_CODE, selectedAirlineCode);
+        startActivity(intent);
+    }
+
+    private void triggerCrashForMissingFlight() {
+        Log.e("MainActivity", "User clicked Find Way without flight number - crashing app");
+        RuntimeException crashException = new RuntimeException("User clicked Find Way button without entering flight number");
+        FirebaseCrashlytics.getInstance().recordException(crashException);
+        FirebaseCrashlytics.getInstance().sendUnsentReports();
+        try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
+        throw crashException;
     }
 
     // 🔽 Get permission or fetch location
     private void requestLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+        // Request both coarse + fine for flexibility
+        boolean fineGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        boolean coarseGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+
+        if (!fineGranted && !coarseGranted) {
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
                     LOCATION_PERMISSION_CODE);
         } else {
             getUserLocation();
@@ -177,23 +173,76 @@ public class MainActivity extends AppCompatActivity {
 
     // 🔽 Fetch and show last known location
     private void getUserLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+        boolean fineGranted = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        boolean coarseGranted = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+
+        if (!fineGranted && !coarseGranted) {
             Toast.makeText(this, "Permission not granted", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        // 1. Try last known location first (fast, may be null)
         fusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, location -> {
                     if (location != null) {
-                        double lat = location.getLatitude();
-                        double lng = location.getLongitude();
-                        Toast.makeText(this, "Your location: " + lat + ", " + lng, Toast.LENGTH_LONG).show();
-                        Log.d("UserLocation", "Lat: " + lat + ", Lng: " + lng);
+                        handleLocationSuccess(location);
                     } else {
-                        Toast.makeText(this, "Location not available", Toast.LENGTH_SHORT).show();
+                        Log.w("UserLocation", "Last location null, requesting fresh location...");
+                        // 2. Try a direct current location request (Android 12+ API works earlier too)
+                        fusedLocationClient.getCurrentLocation(fineGranted ? Priority.PRIORITY_HIGH_ACCURACY : Priority.PRIORITY_BALANCED_POWER_ACCURACY, null)
+                                .addOnSuccessListener(loc -> {
+                                    if (loc != null) {
+                                        handleLocationSuccess(loc);
+                                    } else {
+                                        Log.w("UserLocation", "getCurrentLocation returned null, requesting single update");
+                                        requestSingleLocationUpdate(fineGranted);
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("UserLocation", "getCurrentLocation failed", e);
+                                    requestSingleLocationUpdate(fineGranted);
+                                });
                     }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("UserLocation", "getLastLocation failed", e);
+                    requestSingleLocationUpdate(fineGranted);
                 });
+    }
+
+    private void requestSingleLocationUpdate(boolean highAccuracy) {
+        try {
+            LocationRequest request = new LocationRequest.Builder(
+                    highAccuracy ? Priority.PRIORITY_HIGH_ACCURACY : Priority.PRIORITY_BALANCED_POWER_ACCURACY, 2000L)
+                    .setWaitForAccurateLocation(highAccuracy)
+                    .setMaxUpdates(1)
+                    .setMinUpdateIntervalMillis(500)
+                    .build();
+
+            LocationCallback callback = new LocationCallback() {
+                @Override
+                public void onLocationResult(@NonNull LocationResult locationResult) {
+                    fusedLocationClient.removeLocationUpdates(this);
+                    if (locationResult.getLastLocation() != null) {
+                        handleLocationSuccess(locationResult.getLastLocation());
+                    } else {
+                        Toast.makeText(MainActivity.this, "Location not available", Toast.LENGTH_SHORT).show();
+                        Log.e("UserLocation", "Single update returned null");
+                    }
+                }
+            };
+
+            fusedLocationClient.requestLocationUpdates(request, callback, getMainLooper());
+        } catch (SecurityException se) {
+            Log.e("UserLocation", "SecurityException requesting single update", se);
+        }
+    }
+
+    private void handleLocationSuccess(Location location) {
+        double lat = location.getLatitude();
+        double lng = location.getLongitude();
+        Toast.makeText(this, "Your location: " + lat + ", " + lng, Toast.LENGTH_LONG).show();
+        Log.d("UserLocation", "Lat: " + lat + ", Lng: " + lng);
     }
 
     // 🔽 Handle permission result
@@ -213,23 +262,23 @@ public class MainActivity extends AppCompatActivity {
     private void fetchAirlines() {
         Log.d("MainActivity", "Starting to fetch airlines from Firestore...");
         
-        airlineList.add(new Airline("Loading airlines...", ""));
+    airlineList.add(new Airline(getString(R.string.loading_airlines), ""));
         airlineAdapter.notifyDataSetChanged();
         
-        db.collection("airlines")
+    db.collection(Constants.COL_AIRLINES)
                 .get()
                 .addOnCompleteListener(task -> {
                     // Remove loading message
-                    airlineList.remove(airlineList.stream()
-                            .filter(airline -> airline.name.equals("Loading airlines..."))
+            airlineList.remove(airlineList.stream()
+                .filter(airline -> airline.name.equals(getString(R.string.loading_airlines)))
                             .findFirst()
                             .orElse(null));
                     
                     if (task.isSuccessful()) {
                         Log.d("MainActivity", "Successfully fetched airlines");
                         for (QueryDocumentSnapshot document : task.getResult()) {
-                            String airlineName = document.getString("name");
-                            String airlineCode = document.getString("code");
+                            String airlineName = document.getString(Constants.FIELD_AIRLINE_NAME);
+                            String airlineCode = document.getString(Constants.FIELD_AIRLINE_CODE);
                             
                             if (airlineName != null && !airlineName.trim().isEmpty()) {
                                 // Use empty string if code is null
@@ -251,5 +300,16 @@ public class MainActivity extends AppCompatActivity {
         bundle.putString("airline_name_selected", airlineName);
         mFirebaseAnalytics.logEvent("find_flight_button_click", bundle);
         Log.d("FirebaseAnalytics", "Logged event 'find_flight_button_click' for flight: " + flightNumber + " with airline: " + airlineName);
+    }
+
+    // New analytics event: flight_search (airline_code, flight_number, success)
+    private void logFlightSearchAnalytics(String airlineCode, String flightNumber, boolean success) {
+        if (mFirebaseAnalytics == null) return;
+        Bundle b = new Bundle();
+        b.putString("airline_code", airlineCode == null ? "" : airlineCode);
+        b.putString("flight_number", flightNumber == null ? "" : flightNumber);
+        b.putString("success", success ? "true" : "false");
+        mFirebaseAnalytics.logEvent("flight_search", b);
+        Log.d("FirebaseAnalytics", "Logged event 'flight_search' airline_code=" + airlineCode + ", flight_number=" + flightNumber + ", success=" + success);
     }
 }
